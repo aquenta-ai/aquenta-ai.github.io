@@ -286,13 +286,41 @@
 </section>
 
 <section id="contact" class="contact">
-  <div class="wrap reveal">
-    <div class="eyebrow">Get in touch</div>
-    <h2>Let's hear what your operation sounds like.</h2>
-    <p class="lede">Tell us about the voices, feeds and records you depend on. We'll show you what they look like as structured, trustworthy signal.</p>
-    <a class="btn btn-solid" href="mailto:a@aquenta.ai?subject=Briefing%20request">a@aquenta.ai
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-    </a>
+  <div class="wrap contact-grid">
+    <div class="contact-copy reveal">
+      <div class="eyebrow">Get in touch</div>
+      <h2>Let's hear what your operation sounds like.</h2>
+      <p class="lede">Tell us about the voices, feeds and records you depend on. We'll show you what they look like as structured, trustworthy signal.</p>
+      <p class="contact-note">We reply within two working days. Briefings can be held under NDA.</p>
+    </div>
+    <form class="contact-form reveal d1" id="contactForm" novalidate>
+      <!-- Web3Forms access key: public by design, it can only deliver mail to the Aquenta inbox. -->
+      <input type="hidden" name="access_key" value="363c88d4-940e-4012-abdd-8e64474339c4">
+      <input type="hidden" name="subject" value="Aquenta website enquiry">
+      <input type="hidden" name="from_name" value="aquenta.ai">
+      <input type="checkbox" name="botcheck" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <div class="row2">
+        <label>Name<input name="name" required autocomplete="name" maxlength="120"></label>
+        <label>Work email<input name="email" type="email" required autocomplete="email" maxlength="160"></label>
+      </div>
+      <div class="row2">
+        <label>Organisation<input name="organisation" autocomplete="organization" maxlength="160"></label>
+        <label>Interested in
+          <select name="interest">
+            <option>Verbasignal</option>
+            <option>Skyweave</option>
+            <option>Interpres</option>
+            <option>Something else</option>
+          </select>
+        </label>
+      </div>
+      <label>Message<textarea name="message" rows="5" required maxlength="4000" placeholder="What does your operation run on, and what would you like to see?"></textarea></label>
+      <div class="h-captcha" data-captcha="true"></div>
+      <button class="btn btn-solid" type="submit">Send message
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+      <p class="form-status" id="formStatus" role="status" aria-live="polite"></p>
+    </form>
   </div>
 </section>
 
@@ -314,6 +342,7 @@
   </div>
 </footer>
 
+<script src="https://web3forms.com/client/script.js" async defer></script>
 <script src="assets/js/main.js" defer></script>
 </body>
 </html>

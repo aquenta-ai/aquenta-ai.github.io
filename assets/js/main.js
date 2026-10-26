@@ -71,6 +71,49 @@
     return { ctx, w, h };
   }
 
+  /* ---------- Contact form (Web3Forms + hCaptcha) ---------- */
+
+  (function contact() {
+    const form = $("#contactForm"), status = $("#formStatus");
+    const setStatus = (msg, kind) => { status.textContent = msg; status.className = "form-status " + (kind || ""); };
+
+    form.addEventListener("submit", async e => {
+      e.preventDefault();
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+      const data = Object.fromEntries(new FormData(form));
+      if (data.access_key.startsWith("YOUR_")) {
+        setStatus("The contact form isn't configured yet.", "err");
+        return;
+      }
+      if (!data["h-captcha-response"]) {
+        setStatus("Please complete the captcha.", "err");
+        return;
+      }
+      const btn = form.querySelector("button[type=submit]");
+      btn.disabled = true;
+      setStatus("Sending…");
+      try {
+        const res = await fetch("https://api.web3forms.com/submit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify(data)
+        });
+        const out = await res.json();
+        if (!res.ok || !out.success) throw new Error(out.message || "Request failed");
+        form.reset();
+        if (window.hcaptcha) window.hcaptcha.reset();
+        setStatus("Thanks. Your message is on its way and we'll be in touch shortly.", "ok");
+      } catch (err) {
+        setStatus("Something went wrong sending that. Please try again in a moment.", "err");
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  })();
+
   /* ---------- Hero: voice waves resolving into signal ---------- */
 
   (function hero() {

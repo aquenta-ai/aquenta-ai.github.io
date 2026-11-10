@@ -111,6 +111,7 @@
         <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12l5 5L20 7"/></svg><span><b>AI interprets, rules authorise.</b> A deterministic state machine is the final authority. A model can never write operational state on its own.</span></li>
         <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12l5 5L20 7"/></svg><span><b>Emit early, revise honestly.</b> Events go out fast as provisional, then settle. Unclear calls are delivered as unresolved, never silently dropped or guessed.</span></li>
         <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12l5 5L20 7"/></svg><span><b>Built for real radio.</b> Push-to-talk gating, cross-position de-duplication and defences against silence hallucinations, before a single word is transcribed.</span></li>
+        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12l5 5L20 7"/></svg><span><b>Speaks back, in your passengers' languages.</b> Events become announcements written and voiced on-prem, with every flight, gate and belt number checked before anything is played.</span></li>
       </ul>
     </div>
     <div class="demo reveal d1" aria-label="Animated example: radio transcript becoming structured events">
@@ -125,6 +126,51 @@
           <div>
             <div class="vs-label">Canonical events</div>
             <div id="vsEvents"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="va reveal" id="vaDownstream">
+      <div class="va-head">
+        <div class="eyebrow">Downstream</div>
+        <h3>Every event can speak. In <span id="vaCount">23</span> languages.</h3>
+        <p>The same event that reaches your operational systems can become a passenger announcement. An on-prem language model writes it from the event and the flight board, a deterministic check makes sure no flight, gate or belt number changed on the way, and it is translated and voiced for the PA, the display boards and the app.</p>
+      </div>
+      <div class="demo va-demo" aria-label="Animated example: an operational event becoming a spoken announcement in several languages">
+        <div class="demo-bar"><span>Verbasignal · Announcements</span><span class="live">Live</span></div>
+        <div class="va-flow">
+          <div class="va-step">
+            <div class="vs-label"><span class="va-n">1</span> Event</div>
+            <div class="vs-event show va-json" id="vaEvent"></div>
+            <div class="va-ctx">
+              <span class="va-chip">Flight board · from Mumbai</span>
+              <span class="va-chip">Baggage · belt 5</span>
+            </div>
+          </div>
+          <div class="va-arrow" aria-hidden="true"></div>
+          <div class="va-step">
+            <div class="vs-label"><span class="va-n">2</span> Written on-prem</div>
+            <div class="va-card va-en" id="vaWritten"></div>
+            <div class="va-checks" id="vaChecks">
+              <span class="va-check">flight 417 kept</span>
+              <span class="va-check">belt 5 kept</span>
+              <span class="va-check">category on list</span>
+            </div>
+          </div>
+          <div class="va-arrow" aria-hidden="true"></div>
+          <div class="va-step">
+            <div class="vs-label"><span class="va-n">3</span> Translated &amp; spoken</div>
+            <div class="va-langs" id="vaLangs" role="list"></div>
+            <div class="va-card va-said" id="vaSaid" aria-live="off"></div>
+            <canvas class="va-wave" id="vaWave"></canvas>
+            <div class="va-out">
+              <span class="va-dest" id="vaPA"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 010 7M19 5a10 10 0 010 14"/></svg>PA voice</span>
+              <span class="va-dest on"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Display boards</span>
+              <span class="va-dest on"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/></svg>App &amp; SMS</span>
+            </div>
           </div>
         </div>
       </div>

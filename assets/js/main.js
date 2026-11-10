@@ -289,6 +289,126 @@
     });
   })();
 
+  /* ---------- Verbasignal downstream: announcements ---------- */
+
+  (function announcements() {
+    const root = $("#vaDownstream");
+    if (!root) return;
+    const flow = $(".va-flow", root), ev = $("#vaEvent"), written = $("#vaWritten");
+    const checks = [...root.querySelectorAll(".va-check")], rail = $("#vaLangs");
+    const said = $("#vaSaid"), wave = $("#vaWave"), pa = $("#vaPA");
+
+    // Languages the translator writes. The demo shows a sample of them;
+    // `voice` marks the ones with a validated speech voice for the PA today.
+    const TOTAL = 23;
+    const LANGS = [
+      { code: "EN", name: "English", voice: true, text: "Passengers arriving on Northwind flight 417 from Mumbai, your baggage will be on belt 5. Thank you." },
+      { code: "HI", name: "हिन्दी", voice: true, text: "मुंबई से आने वाली नॉर्थविंड उड़ान 417 के यात्रियों का सामान बेल्ट 5 पर आएगा। धन्यवाद।" },
+      { code: "TA", name: "தமிழ்", text: "மும்பையிலிருந்து வரும் நார்த்விண்ட் விமானம் 417 பயணிகளின் உடைமைகள் பெல்ட் 5 இல் வரும். நன்றி." },
+      { code: "BN", name: "বাংলা", text: "মুম্বাই থেকে আগত নর্থউইন্ড ফ্লাইট 417-এর যাত্রীদের লাগেজ বেল্ট 5-এ আসবে। ধন্যবাদ।" },
+      { code: "MR", name: "मराठी", text: "मुंबईहून येणाऱ्या नॉर्थविंड विमान 417 च्या प्रवाशांचे सामान बेल्ट 5 वर येईल. धन्यवाद." },
+      { code: "TE", name: "తెలుగు", text: "ముంబై నుండి వస్తున్న నార్త్‌విండ్ విమానం 417 ప్రయాణికుల సామాను బెల్ట్ 5 పైకి వస్తుంది. ధన్యవాదాలు." },
+      { code: "KN", name: "ಕನ್ನಡ", text: "ಮುಂಬೈನಿಂದ ಬರುವ ನಾರ್ತ್‌ವಿಂಡ್ ವಿಮಾನ 417 ರ ಪ್ರಯಾಣಿಕರ ಸಾಮಾನು ಬೆಲ್ಟ್ 5 ಕ್ಕೆ ಬರುತ್ತದೆ. ಧನ್ಯವಾದಗಳು." },
+      { code: "GU", name: "ગુજરાતી", text: "મુંબઈથી આવતી નોર્થવિન્ડ ફ્લાઇટ 417 ના મુસાફરોનો સામાન બેલ્ટ 5 પર આવશે. આભાર." },
+      { code: "PA", name: "ਪੰਜਾਬੀ", text: "ਮੁੰਬਈ ਤੋਂ ਆਉਣ ਵਾਲੀ ਨੌਰਥਵਿੰਡ ਉਡਾਣ 417 ਦੇ ਯਾਤਰੀਆਂ ਦਾ ਸਮਾਨ ਬੈਲਟ 5 'ਤੇ ਆਵੇਗਾ। ਧੰਨਵਾਦ।" }
+    ];
+    $("#vaCount").textContent = String(TOTAL);
+
+    const esc = t => t.replace(/[&<>]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[ch]));
+    ev.innerHTML = [
+      "{",
+      `  <span class="k">"event_type"</span>: <span class="s">"ARRIVAL_TAXI_IN"</span>,`,
+      `  <span class="k">"callsign"</span>: <span class="s">"NWD417"</span>,`,
+      `  <span class="k">"stand"</span>: <span class="s">"32"</span>,`,
+      `  <span class="k">"status"</span>: <span class="status ok">ASSERTED</span>`,
+      "}"
+    ].join("\n");
+
+    rail.innerHTML = LANGS.map((l, i) =>
+      `<span class="va-lang" role="listitem" data-i="${i}">${l.code}<i>${esc(l.name)}</i></span>`
+    ).join("") + `<span class="va-lang" role="listitem">+${TOTAL - LANGS.length} more</span>`;
+    const chips = [...rail.querySelectorAll("[data-i]")];
+
+    const words = (el, text) => {
+      el.innerHTML = text.split(" ").map(w => `<span class="w">${esc(w)}</span>`).join(" ");
+      return [...el.querySelectorAll(".w")];
+    };
+
+    let running = false, loop = 0, raf = 0, level = 0;
+
+    async function read(spans, pace, my) {
+      for (const [i, w] of spans.entries()) {
+        if (!running || my !== loop) return false;
+        spans[i - 1]?.classList.remove("now");
+        w.classList.add("on", "now");
+        level = 1;
+        await sleep(pace);
+      }
+      spans.at(-1)?.classList.remove("now");
+      return true;
+    }
+
+    async function run() {
+      const my = ++loop;
+      while (running && my === loop) {
+        checks.forEach(c => c.classList.remove("ok"));
+        said.innerHTML = ""; chips.forEach(c => c.classList.remove("on"));
+        flow.classList.add("pulse");
+        await sleep(700);
+        if (!(await read(words(written, LANGS[0].text), 110, my))) return;
+        for (const c of checks) { await sleep(380); c.classList.add("ok"); }
+        flow.classList.remove("pulse");
+        for (const [i, lang] of LANGS.entries()) {
+          if (!running || my !== loop) return;
+          chips.forEach(c => c.classList.toggle("on", c.dataset.i === String(i)));
+          pa.classList.toggle("on", !!lang.voice);
+          pa.title = lang.voice ? "Voiced on the PA" : "Text on display boards and app; PA voice for English and Hindi today";
+          said.lang = lang.code.toLowerCase();
+          const spans = words(said, lang.text);
+          voiced = !!lang.voice;
+          if (!(await read(spans, lang.voice ? 230 : 120, my))) return;
+          level = 0;
+          await sleep(900);
+        }
+        await sleep(1600);
+      }
+    }
+
+    let voiced = false;
+    const bars = Array.from({ length: 64 }, () => 0);
+    function draw() {
+      const { ctx, w, h } = fitCanvas(wave);
+      bars.shift();
+      bars.push(voiced && level ? .2 + Math.random() * .8 : Math.random() * .05);
+      level *= .9;
+      ctx.clearRect(0, 0, w, h);
+      const bw = w / bars.length;
+      bars.forEach((v, i) => {
+        const bh = Math.max(2, v * (h - 6));
+        ctx.fillStyle = v > .08 ? `rgba(111,240,230,${.35 + v * .6})` : "rgba(102,114,168,.45)";
+        ctx.fillRect(i * bw + 1, (h - bh) / 2, Math.max(1, bw - 2), bh);
+      });
+      raf = requestAnimationFrame(draw);
+    }
+
+    if (reduceMotion) {
+      words(written, LANGS[0].text).forEach(w => w.classList.add("on"));
+      checks.forEach(c => c.classList.add("ok"));
+      chips[1].classList.add("on"); pa.classList.add("on");
+      words(said, LANGS[1].text).forEach(w => w.classList.add("on"));
+      return;
+    }
+    whenVisible(root, () => {
+      if (running) return;
+      running = true;
+      run();
+      raf = requestAnimationFrame(draw);
+    }, () => {
+      running = false;
+      cancelAnimationFrame(raf);
+    });
+  })();
+
   /* ---------- Skyweave demo ---------- */
 
   (function skyweave() {

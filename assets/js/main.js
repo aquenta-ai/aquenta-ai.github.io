@@ -631,4 +631,127 @@
       run();
     }, () => { running = false; });
   })();
+  /* ---------- Concord story ---------- */
+
+  (function concordStory() {
+    const root = $("#story");
+    if (!root) return;
+    const dir = "assets/img/concord/";
+    const tracks = {
+      turret: [
+        ["turret-01-one-platform-sign-in", "One platform", "Every organisation, one turret system",
+          "The sign-in screen lists all three companies. One Concord server hosts them all, and each signs in to its own space with its own people, lines, branding and rules.",
+          "Concord turret sign-in screen listing three organisations on one server"],
+        ["turret-02-trading-floor-aquenta-capital", "Trading floor", "A trading floor, the way traders work",
+          "Aquenta Capital's head of trading on the financial console: private wires to brokers and banks, squawk channels on speakers, and every call line recorded.",
+          "Trading floor console with private wire keys, two handsets and squawk channels"],
+        ["turret-03-airport-ops-delhi-airport", "Airport ops", "An airport ops centre on the same platform",
+          "Delhi Airport's operations console: crisis bridge, ringdowns to fire, CISF, medical and the apron, and push to talk, all in the airport's own colours.",
+          "Airport operations console with crisis bridge, ringdowns and push to talk"],
+        ["turret-04-estate-security-antilla", "Estate security", "Estate security, kept separate",
+          "Antilla Residence's security console: lockdown broadcast, gates, helipad and police. Each company sees only its own, unless it is allowed to see more.",
+          "Security command console with lockdown broadcast and ringdowns to gates and helipad"],
+        ["turret-05-cross-company-call", "Across companies", "One press between companies",
+          "Antilla security presses IGI VVIP and the airport turret rings. The call card shows the caller, their company and its logo, on encrypted media. This was a live call between two turrets, not a mock-up.",
+          "Airport turret receiving an incoming call from Antilla Residence security"]
+      ],
+      admin: [
+        ["admin-01-platform-all-companies", "Platform", "Every company, one place to run them",
+          "The platform console's Tenants page. Whoever operates the deployment adds companies, gives them numbers and watches the whole platform.",
+          "Platform console tenants page listing all companies"],
+        ["admin-02-company-runs-its-people", "Its own people", "Each company runs its own people",
+          "Aquenta Capital's own admin console. Its administrator manages traders, roles and line access, and cannot see any other company's users.",
+          "Company admin console users page"],
+        ["admin-03-company-branding", "Its own look", "Its own look, sound and console",
+          "Antilla's branding page: name, colours, ringer and console type are set per company, and turrets pick up a change at once. The admin console itself takes the company's colours.",
+          "Company branding page with colours, ringer and console type"],
+        ["admin-04-who-can-reach-whom", "Who can reach whom", "It chooses who it can reach",
+          "Delhi Airport's Other companies page. Companies see and call each other only when both sides allow it. Untick one and the link is gone.",
+          "Other companies page with per-company allow checkboxes"],
+        ["admin-05-per-user-control", "Per user", "Control, user by user",
+          "One trader's page at Aquenta Capital: list them for other companies or keep them internal, set roles, and reset their password or turret passcode in one click.",
+          "Single user settings page with visibility, roles and credential resets"]
+      ]
+    };
+
+    const img = $("#storyImg"), rail = $("#storyRail");
+    const tabs = [...root.querySelectorAll("[data-track]")];
+    let track = "turret", idx = 0;
+
+    // Warm the cache so switching screens doesn't flash.
+    const preload = () => Object.values(tracks).flat().forEach(([f]) => { new Image().src = dir + f + ".webp"; });
+    whenVisible(root, preload, () => {});
+
+    function buildRail() {
+      rail.innerHTML = "";
+      tracks[track].forEach(([f, short], i) => {
+        const li = document.createElement("li");
+        li.innerHTML = `<button type="button" data-i="${i}"><img src="${dir}${f}-thumb.webp" alt="" loading="lazy" width="440" height="281"><span><i>0${i + 1}</i>${short}</span></button>`;
+        rail.appendChild(li);
+      });
+    }
+
+    function show(i, animate = true) {
+      const list = tracks[track];
+      idx = (i + list.length) % list.length;
+      const [f, short, title, text, alt] = list[idx];
+      const apply = () => {
+        img.src = dir + f + ".webp";
+        img.alt = alt;
+        img.classList.remove("fading");
+      };
+      if (animate && !reduceMotion) { img.classList.add("fading"); setTimeout(apply, 200); } else apply();
+      $("#storyN").textContent = `0${idx + 1} / 0${list.length} · ${short}`;
+      $("#storyTitle").textContent = title;
+      $("#storyText").textContent = text;
+      rail.querySelectorAll("button").forEach(b => b.setAttribute("aria-current", String(+b.dataset.i === idx)));
+    }
+
+    function setTrack(t, i = 0) {
+      track = t;
+      tabs.forEach(b => b.setAttribute("aria-selected", String(b.dataset.track === t)));
+      buildRail();
+      show(i);
+    }
+
+    tabs.forEach(b => b.addEventListener("click", () => b.dataset.track !== track && setTrack(b.dataset.track)));
+    rail.addEventListener("click", e => { const b = e.target.closest("button"); if (b) show(+b.dataset.i); });
+    $("#storyPrev").addEventListener("click", () => show(idx - 1));
+    $("#storyNext").addEventListener("click", () => show(idx + 1));
+    root.addEventListener("keydown", e => {
+      if (e.target.closest(".story-tabs")) return;
+      if (e.key === "ArrowLeft") { show(idx - 1); e.preventDefault(); }
+      if (e.key === "ArrowRight") { show(idx + 1); e.preventDefault(); }
+    });
+
+    // Swipe on touch screens.
+    let x0 = null;
+    const stage = root.querySelector(".story-stage");
+    stage.addEventListener("touchstart", e => { x0 = e.touches[0].clientX; }, { passive: true });
+    stage.addEventListener("touchend", e => {
+      if (x0 === null) return;
+      const dx = e.changedTouches[0].clientX - x0;
+      if (Math.abs(dx) > 40) show(idx + (dx < 0 ? 1 : -1));
+      x0 = null;
+    });
+
+    document.querySelectorAll("[data-goto]").forEach(el => el.addEventListener("click", () => {
+      const [t, i] = el.dataset.goto.split(":");
+      setTrack(t, +i);
+      root.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+    }));
+
+    const box = $("#lightbox"), boxImg = $("#lightboxImg");
+    $("#storyOpen").addEventListener("click", () => {
+      const [f, , , , alt] = tracks[track][idx];
+      boxImg.src = dir + f + "-4k.webp";
+      boxImg.alt = alt;
+      if (box.showModal) box.showModal(); else window.open(boxImg.src, "_blank");
+    });
+    $("#lightboxClose").addEventListener("click", () => box.close());
+    box.addEventListener("click", e => { if (e.target === box) box.close(); });
+
+    buildRail();
+    show(0, false);
+  })();
 })();
